@@ -36,36 +36,67 @@ function saveDatabase() {
 const dbWrapper = {
   prepare: (sql) => ({
     run: (...params) => {
-      db.run(sql, params);
-      saveDatabase();
-      const lastId = db.exec("SELECT last_insert_rowid()")[0]?.values[0]?.[0] || 0;
-      return { lastInsertRowid: lastId, changes: db.getRowsModified() };
+      try {
+        const flatParams = params.flat();
+        if (flatParams.length > 0) {
+          db.run(sql, flatParams);
+        } else {
+          db.run(sql);
+        }
+        saveDatabase();
+        const result = db.exec("SELECT last_insert_rowid() as id");
+        const lastId = result[0]?.values[0]?.[0] || 0;
+        return { lastInsertRowid: lastId, changes: db.getRowsModified() };
+      } catch (err) {
+        console.error('DB run error:', err.message, 'SQL:', sql, 'Params:', params);
+        throw err;
+      }
     },
     get: (...params) => {
-      const stmt = db.prepare(sql);
-      stmt.bind(params);
-      if (stmt.step()) {
-        const row = stmt.getAsObject();
+      try {
+        const flatParams = params.flat();
+        const stmt = db.prepare(sql);
+        if (flatParams.length > 0) {
+          stmt.bind(flatParams);
+        }
+        let row = undefined;
+        if (stmt.step()) {
+          row = stmt.getAsObject();
+        }
         stmt.free();
         return row;
+      } catch (err) {
+        console.error('DB get error:', err.message, 'SQL:', sql, 'Params:', params);
+        throw err;
       }
-      stmt.free();
-      return undefined;
     },
     all: (...params) => {
-      const stmt = db.prepare(sql);
-      stmt.bind(params);
-      const results = [];
-      while (stmt.step()) {
-        results.push(stmt.getAsObject());
+      try {
+        const flatParams = params.flat();
+        const stmt = db.prepare(sql);
+        if (flatParams.length > 0) {
+          stmt.bind(flatParams);
+        }
+        const results = [];
+        while (stmt.step()) {
+          results.push(stmt.getAsObject());
+        }
+        stmt.free();
+        return results;
+      } catch (err) {
+        console.error('DB all error:', err.message, 'SQL:', sql, 'Params:', params);
+        throw err;
       }
-      stmt.free();
-      return results;
     }
   }),
   exec: (sql) => {
-    db.run(sql);
-    saveDatabase();
+    try {
+      db.run(sql);
+      saveDatabase();
+    } catch (err) {
+      console.error('DB exec error:', err.message, 'SQL:', sql);
+      throw err;
+    }
   },
   pragma: () => {}
 };
