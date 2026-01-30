@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerecht & Wijn Pairing</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #c9a227, #f4d03f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+
+        .search-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .tab-btn {
+            padding: 12px 30px;
+            border: 2px solid #c9a227;
+            background: transparent;
+            color: #c9a227;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn:hover, .tab-btn.active {
+            background: #c9a227;
+            color: #1a1a2e;
+        }
+
+        .search-box {
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1rem;
+            border: 2px solid #333;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #c9a227;
+        }
+
+        .search-box input::placeholder {
+            color: #888;
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .category-btn {
+            padding: 8px 20px;
+            border: 1px solid #444;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ccc;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn:hover, .category-btn.active {
+            background: rgba(201, 162, 39, 0.2);
+            border-color: #c9a227;
+            color: #c9a227;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .pairing-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .pairing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            padding: 20px;
+            background: rgba(201, 162, 39, 0.1);
+            border-bottom: 1px solid rgba(201, 162, 39, 0.2);
+        }
+
+        .card-header h3 {
+            font-size: 1.3rem;
+            color: #f4d03f;
+            margin-bottom: 5px;
+        }
+
+        .card-header .category {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .wine-list {
+            list-style: none;
+        }
+
+        .wine-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .wine-item:last-child {
+            border-bottom: none;
+        }
+
+        .wine-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .wine-info h4 {
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .wine-info p {
+            color: #888;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .wine-type {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-top: 5px;
+        }
+
+        .wine-type.rood {
+            background: rgba(139, 0, 0, 0.3);
+            color: #ff6b6b;
+        }
+
+        .wine-type.wit {
+            background: rgba(255, 223, 0, 0.2);
+            color: #f4d03f;
+        }
+
+        .wine-type.rose {
+            background: rgba(255, 182, 193, 0.3);
+            color: #ffb6c1;
+        }
+
+        .wine-type.mousserende {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #888;
+        }
+
+        .no-results h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-buttons {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .tab-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Gerecht & Wijn Pairing</h1>
+            <p>Vind de perfecte wijn bij jouw gerecht</p>
+        </header>
+
+        <section class="search-section">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-mode="dish">Zoek op Gerecht</button>
+                <button class="tab-btn" data-mode="wine">Zoek op Wijn</button>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Zoek een gerecht...">
+            </div>
+        </section>
+
+        <section class="categories" id="categories">
+            <!-- Categories worden hier dynamisch toegevoegd -->
+        </section>
+
+        <section class="results-grid" id="resultsGrid">
+            <!-- Resultaten worden hier dynamisch toegevoegd -->
+        </section>
+
+        <footer>
+            <p>Gemaakt met liefde voor wijn en lekker eten</p>
+        </footer>
+    </div>
+
+    <script>
+        // Database met gerechten en wijn pairings
+        const pairingDatabase = [
+            {
+                dish: "Biefstuk",
+                category: "Vlees",
+                wines: [
+                    { name: "Cabernet Sauvignon", type: "rood", description: "Krachtige tannines die perfect passen bij het rijke vlees" },
+                    { name: "Malbec", type: "rood", description: "Fruitig en vol met zachte tannines" },
+                    { name: "Shiraz", type: "rood", description: "Pittig en kruidig, ideaal voor gegrild vlees" }
+                ]
+            },
+            {
+                dish: "Gegrilde Zalm",
+                category: "Vis",
+                wines: [
+                    { name: "Chardonnay", type: "wit", description: "Romig en vol, past bij de vette vis" },
+                    { name: "Pinot Noir", type: "rood", description: "Lichte rode wijn die goed combineert met zalm" },
+                    { name: "Viognier", type: "wit", description: "Aromatisch met hints van abrikoos" }
+                ]
+            },
+            {
+                dish: "Pasta Carbonara",
+                category: "Pasta",
+                wines: [
+                    { name: "Pinot Grigio", type: "wit", description: "Fris en licht, balanceert de romige saus" },
+                    { name: "Verdicchio", type: "wit", description: "Italiaanse klassieker met amandelnoten" },
+                    { name: "Barbera", type: "rood", description: "Lichte rode wijn met fijne zuren" }
+                ]
+            },
+            {
+                dish: "Margherita Pizza",
+                category: "Pasta",
+                wines: [
+                    { name: "Chianti", type: "rood", description: "Klassieke Italiaanse combinatie" },
+                    { name: "Sangiovese", type: "rood", description: "Medium body met kersen en kruiden" },
+                    { name: "Montepulciano", type: "rood", description: "Soepel en fruitig" }
+                ]
+            },
+            {
+                dish: "Caesar Salade",
+                category: "Salade",
+                wines: [
+                    { name: "Sauvignon Blanc", type: "wit", description: "Fris en citrusachtig" },
+                    { name: "Albariño", type: "wit", description: "Mineraal met groene appel" },
+                    { name: "Verdejo", type: "wit", description: "Kruidig en verfrissend" }
+                ]
+            },
+            {
+                dish: "Kip Tikka Masala",
+                category: "Aziatisch",
+                wines: [
+                    { name: "Gewürztraminer", type: "wit", description: "Aromatisch en licht zoet, balanceert kruiden" },
+                    { name: "Riesling", type: "wit", description: "Fris met restzoet om de hitte te temperen" },
+                    { name: "Rosé", type: "rose", description: "Verfrissend en veelzijdig" }
+                ]
+            },
+            {
+                dish: "Sushi",
+                category: "Aziatisch",
+                wines: [
+                    { name: "Champagne", type: "mousserende", description: "Elegant en verfrissend bij rauwe vis" },
+                    { name: "Grüner Veltliner", type: "wit", description: "Kruidig met witte peper notes" },
+                    { name: "Muscadet", type: "wit", description: "Mineraal en perfect bij zeevruchten" }
+                ]
+            },
+            {
+                dish: "Lamskoteletjes",
+                category: "Vlees",
+                wines: [
+                    { name: "Rioja Reserva", type: "rood", description: "Complexe Spaanse wijn met eiken" },
+                    { name: "Côtes du Rhône", type: "rood", description: "Kruidig en vol" },
+                    { name: "Nebbiolo", type: "rood", description: "Elegant met sterke tannines" }
+                ]
+            },
+            {
+                dish: "Mosselen",
+                category: "Vis",
+                wines: [
+                    { name: "Muscadet", type: "wit", description: "Klassieke combinatie uit de Loire" },
+                    { name: "Picpoul de Pinet", type: "wit", description: "Frans en citrusachtig" },
+                    { name: "Vinho Verde", type: "wit", description: "Licht spritzig en verfrissend" }
+                ]
+            },
+            {
+                dish: "Boeuf Bourguignon",
+                category: "Vlees",
+                wines: [
+                    { name: "Bourgogne Rouge", type: "rood", description: "Regionale match made in heaven" },
+                    { name: "Pinot Noir", type: "rood", description: "Elegant en complex" },
+                    { name: "Beaujolais Villages", type: "rood", description: "Fruitig en lichter alternatief" }
+                ]
+            },
+            {
+                dish: "Geitenkaas Salade",
+                category: "Salade",
+                wines: [
+                    { name: "Sancerre", type: "wit", description: "Klassieke Loire combinatie" },
+                    { name: "Pouilly-Fumé", type: "wit", description: "Mineraal en rokerig" },
+                    { name: "Vouvray", type: "wit", description: "Licht zoet met honing notes" }
+                ]
+            },
+            {
+                dish: "Risotto ai Funghi",
+                category: "Pasta",
+                wines: [
+                    { name: "Barbaresco", type: "rood", description: "Elegant met aardse tonen" },
+                    { name: "Dolcetto", type: "rood", description: "Fruitig en toegankelijk" },
+                    { name: "Soave", type: "wit", description: "Fris met amandel notes" }
+                ]
+            },
+            {
+                dish: "Garnalen in Knoflook",
+                category: "Vis",
+                wines: [
+                    { name: "Albariño", type: "wit", description: "Spaanse klassieker bij zeevruchten" },
+                    { name: "Txakoli", type: "wit", description: "Licht spritzig uit Baskenland" },
+                    { name: "Vermentino", type: "wit", description: "Mediterraan en kruidig" }
+                ]
+            },
+            {
+                dish: "Duck à l'Orange",
+                category: "Vlees",
+                wines: [
+                    { name: "Pinot Noir", type: "rood", description: "Elegant met rode vruchten" },
+                    { name: "Gewürztraminer", type: "wit", description: "Aromatisch bij de sinaasappelsaus" },
+                    { name: "Châteauneuf-du-Pape", type: "rood", description: "Krachtig en complex" }
+                ]
+            },
+            {
+                dish: "Pad Thai",
+                category: "Aziatisch",
+                wines: [
+                    { name: "Riesling Spätlese", type: "wit", description: "Zoet-zuur balans bij Thaise smaken" },
+                    { name: "Chenin Blanc", type: "wit", description: "Veelzijdig met tropisch fruit" },
+                    { name: "Rosé d'Anjou", type: "rose", description: "Licht zoet en verfrissend" }
+                ]
+            },
+            {
+                dish: "Ossobuco",
+                category: "Vlees",
+                wines: [
+                    { name: "Barolo", type: "rood", description: "Koning van de Italiaanse wijnen" },
+                    { name: "Amarone", type: "rood", description: "Krachtig en vol met gedroogd fruit" },
+                    { name: "Brunello di Montalcino", type: "rood", description: "Elegant en langlevend" }
+                ]
+            },
+            {
+                dish: "Oesters",
+                category: "Vis",
+                wines: [
+                    { name: "Champagne Brut", type: "mousserende", description: "Ultieme luxe combinatie" },
+                    { name: "Chablis", type: "wit", description: "Mineraal en strak" },
+                    { name: "Muscadet Sur Lie", type: "wit", description: "Ziltig en perfect bij de zee" }
+                ]
+            },
+            {
+                dish: "Coq au Vin",
+                category: "Vlees",
+                wines: [
+                    { name: "Bourgogne Rouge", type: "rood", description: "Traditionele match" },
+                    { name: "Mercurey", type: "rood", description: "Elegante Bourgogne" },
+                    { name: "Gevrey-Chambertin", type: "rood", description: "Complex en krachtig" }
+                ]
+            },
+            {
+                dish: "Ceviche",
+                category: "Vis",
+                wines: [
+                    { name: "Torrontés", type: "wit", description: "Argentijns en aromatisch" },
+                    { name: "Sauvignon Blanc", type: "wit", description: "Citrus bij citrus" },
+                    { name: "Prosecco", type: "mousserende", description: "Feestelijk en fris" }
+                ]
+            },
+            {
+                dish: "Kaasplank",
+                category: "Kaas",
+                wines: [
+                    { name: "Port", type: "rood", description: "Klassiek bij oude kazen" },
+                    { name: "Sauternes", type: "wit", description: "Zoet bij blauwe kaas" },
+                    { name: "Amarone", type: "rood", description: "Vol en krachtig" }
+                ]
+            },
+            {
+                dish: "Tiramisu",
+                category: "Dessert",
+                wines: [
+                    { name: "Vin Santo", type: "wit", description: "Italiaanse dessertwijn klassieker" },
+                    { name: "Marsala", type: "rood", description: "Traditioneel in het recept" },
+                    { name: "Moscato d'Asti", type: "mousserende", description: "Licht zoet en spritzig" }
+                ]
+            },
+            {
+                dish: "Crème Brûlée",
+                category: "Dessert",
+                wines: [
+                    { name: "Sauternes", type: "wit", description: "Luxe zoete Bordeaux" },
+                    { name: "Tokaji", type: "wit", description: "Hongaarse nectar" },
+                    { name: "Late Harvest Riesling", type: "wit", description: "Zoet met levendige zuren" }
+                ]
+            },
+            {
+                dish: "Chocolade Fondant",
+                category: "Dessert",
+                wines: [
+                    { name: "Banyuls", type: "rood", description: "Frans en chocoladeachtig" },
+                    { name: "Ruby Port", type: "rood", description: "Fruitig en zoet" },
+                    { name: "Maury", type: "rood", description: "Zoete rode uit Roussillon" }
+                ]
+            },
+            {
+                dish: "Appeltaart",
+                category: "Dessert",
+                wines: [
+                    { name: "Calvados", type: "wit", description: "Appel op appel" },
+                    { name: "Ice Wine", type: "wit", description: "Intens zoet met appel notes" },
+                    { name: "Gewürztraminer Vendanges Tardives", type: "wit", description: "Laat geoogst en aromatisch" }
+                ]
+            }
+        ];
+
+        // State
+        let currentMode = 'dish';
+        let activeCategory = null;
+
+        // DOM elements
+        const searchInput = document.getElementById('searchInput');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const categoriesContainer = document.getElementById('categories');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+
+        // Get unique categories
+        function getCategories() {
+            const categories = [...new Set(pairingDatabase.map(item => item.category))];
+            return categories.sort();
+        }
+
+        // Get unique wine types
+        function getWineTypes() {
+            const wines = pairingDatabase.flatMap(item => item.wines.map(w => w.type));
+            return [...new Set(wines)].sort();
+        }
+
+        // Render categories
+        function renderCategories() {
+            const items = currentMode === 'dish' ? getCategories() : getWineTypes();
+            categoriesContainer.innerHTML = `
+                <button class="category-btn ${!activeCategory ? 'active' : ''}" data-category="">Alles</button>
+                ${items.map(item => `
+                    <button class="category-btn ${activeCategory === item ? 'active' : ''}" data-category="${item}">
+                        ${item.charAt(0).toUpperCase() + item.slice(1)}
+                    </button>
+                `).join('')}
+            `;
+
+            // Add event listeners
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    activeCategory = btn.dataset.category || null;
+                    renderCategories();
+                    renderResults();
+                });
+            });
+        }
+
+        // Get wine icon based on type
+        function getWineIcon(type) {
+            switch(type) {
+                case 'rood': return '🍷';
+                case 'wit': return '🥂';
+                case 'rose': return '🌸';
+                case 'mousserende': return '🍾';
+                default: return '🍷';
+            }
+        }
+
+        // Filter results based on search and category
+        function getFilteredResults() {
+            const searchTerm = searchInput.value.toLowerCase();
+
+            let results = pairingDatabase;
+
+            if (currentMode === 'dish') {
+                // Filter by dish name or category
+                results = results.filter(item => {
+                    const matchesSearch = !searchTerm ||
+                        item.dish.toLowerCase().includes(searchTerm) ||
+                        item.category.toLowerCase().includes(searchTerm);
+                    const matchesCategory = !activeCategory || item.category === activeCategory;
+                    return matchesSearch && matchesCategory;
+                });
+            } else {
+                // Filter by wine
+                results = results.filter(item => {
+                    const hasMatchingWine = item.wines.some(wine => {
+                        const matchesSearch = !searchTerm ||
+                            wine.name.toLowerCase().includes(searchTerm) ||
+                            wine.type.toLowerCase().includes(searchTerm);
+                        const matchesType = !activeCategory || wine.type === activeCategory;
+                        return matchesSearch && matchesType;
+                    });
+                    return hasMatchingWine;
+                });
+
+                // Filter wines within each dish
+                if (searchTerm || activeCategory) {
+                    results = results.map(item => ({
+                        ...item,
+                        wines: item.wines.filter(wine => {
+                            const matchesSearch = !searchTerm ||
+                                wine.name.toLowerCase().includes(searchTerm) ||
+                                wine.type.toLowerCase().includes(searchTerm);
+                            const matchesType = !activeCategory || wine.type === activeCategory;
+                            return matchesSearch && matchesType;
+                        })
+                    }));
+                }
+            }
+
+            return results;
+        }
+
+        // Render results
+        function renderResults() {
+            const results = getFilteredResults();
+
+            if (results.length === 0) {
+                resultsGrid.innerHTML = `
+                    <div class="no-results">
+                        <h3>Geen resultaten gevonden</h3>
+                        <p>Probeer een andere zoekterm of categorie</p>
+                    </div>
+                `;
+                return;
+            }
+
+            resultsGrid.innerHTML = results.map(item => `
+                <div class="pairing-card">
+                    <div class="card-header">
+                        <h3>${item.dish}</h3>
+                        <span class="category">${item.category}</span>
+                    </div>
+                    <div class="card-body">
+                        <ul class="wine-list">
+                            ${item.wines.map(wine => `
+                                <li class="wine-item">
+                                    <span class="wine-icon">${getWineIcon(wine.type)}</span>
+                                    <div class="wine-info">
+                                        <h4>${wine.name}</h4>
+                                        <p>${wine.description}</p>
+                                        <span class="wine-type ${wine.type}">${wine.type}</span>
+                                    </div>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Event listeners
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                activeCategory = null;
+                searchInput.placeholder = currentMode === 'dish' ? 'Zoek een gerecht...' : 'Zoek een wijn...';
+                renderCategories();
+                renderResults();
+            });
+        });
+
+        searchInput.addEventListener('input', renderResults);
+
+        // Initial render
+        renderCategories();
+        renderResults();
+    </script>
+</body>
+</html>
