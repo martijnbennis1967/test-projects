@@ -1,13 +1,11 @@
 import db from './database.js';
 
 // Clear existing data
-db.exec(`
-  DELETE FROM loan_payments;
-  DELETE FROM loans;
-  DELETE FROM participations;
-  DELETE FROM ownership;
-  DELETE FROM companies;
-`);
+try { db.exec(`DELETE FROM loan_payments`); } catch(e) {}
+try { db.exec(`DELETE FROM loans`); } catch(e) {}
+try { db.exec(`DELETE FROM participations`); } catch(e) {}
+try { db.exec(`DELETE FROM ownership`); } catch(e) {}
+try { db.exec(`DELETE FROM companies`); } catch(e) {}
 
 // Insert the three main companies
 const insertCompany = db.prepare(
