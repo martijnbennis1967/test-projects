@@ -283,6 +283,59 @@ router.get('/summary/balances', (req, res) => {
   }
 });
 
+// Calculate interest for a specific loan up to a specific date
+router.get('/:id/calculate-interest', (req, res) => {
+  try {
+    const { date } = req.query;
+    const targetDate = date ? new Date(date) : new Date();
+
+    const loan = db.prepare('SELECT * FROM loans WHERE id = ?').get(req.params.id);
+    if (!loan) {
+      return res.status(404).json({ error: 'Loan not found' });
+    }
+
+    // Get all payments up to this date
+    const payments = db.prepare(`
+      SELECT * FROM loan_payments
+      WHERE loan_id = ? AND payment_date <= ?
+      ORDER BY payment_date ASC
+    `).all(req.params.id, date || targetDate.toISOString().split('T')[0]);
+
+    const totalPrincipalPaid = payments.reduce((sum, p) => sum + (p.principal_amount || 0), 0);
+    const totalInterestPaid = payments.reduce((sum, p) => sum + (p.interest_amount || 0), 0);
+    const remainingPrincipal = loan.principal - totalPrincipalPaid;
+
+    // Calculate interest from start date (or last payment) to target date
+    let interestDue = 0;
+    if (loan.interest_rate && loan.interest_rate > 0) {
+      // Find the last payment date or use start date
+      const lastPayment = payments.length > 0 ? payments[payments.length - 1] : null;
+      const fromDate = lastPayment ? new Date(lastPayment.payment_date) : new Date(loan.start_date);
+
+      // Calculate days between dates
+      const days = Math.max(0, (targetDate - fromDate) / (24 * 60 * 60 * 1000));
+
+      // Simple interest: Principal * Rate * Time (in years)
+      interestDue = remainingPrincipal * (loan.interest_rate / 100) * (days / 365);
+    }
+
+    res.json({
+      loan_id: loan.id,
+      target_date: targetDate.toISOString().split('T')[0],
+      principal: loan.principal,
+      interest_rate: loan.interest_rate,
+      total_principal_paid: totalPrincipalPaid,
+      total_interest_paid: totalInterestPaid,
+      remaining_principal: remainingPrincipal,
+      interest_due: Math.round(interestDue * 100) / 100,
+      total_due: Math.round((remainingPrincipal + interestDue) * 100) / 100
+    });
+  } catch (error) {
+    console.error('Calculate interest error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Helper function to calculate accrued interest
 function calculateAccruedInterest(loan, paidInterest = 0) {
   if (!loan.interest_rate || loan.interest_rate === 0) return 0;
