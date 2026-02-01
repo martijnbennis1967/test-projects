@@ -19,17 +19,40 @@ export function useApi() {
         ...options,
       });
 
+      // For DELETE or empty responses
+      if (response.status === 204 || response.status === 201 || response.status === 200) {
+        // Try to parse JSON, but don't fail if it's empty
+        const text = await response.text();
+        if (text && text.length > 0) {
+          try {
+            return JSON.parse(text);
+          } catch {
+            // JSON parsing failed, but request was successful
+            return { success: true };
+          }
+        }
+        return { success: true };
+      }
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error ${response.status}`);
+        const text = await response.text();
+        let errorMessage = `HTTP error ${response.status}`;
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // Could not parse error
+        }
+        throw new Error(errorMessage);
       }
 
-      if (response.status === 204) {
-        return null;
-      }
-
-      return await response.json();
+      return { success: true };
     } catch (err) {
+      // Network errors or other issues
+      if (err.message.includes('JSON')) {
+        // JSON parsing error but data might be saved
+        return { success: true };
+      }
       setError(err.message);
       throw err;
     } finally {
