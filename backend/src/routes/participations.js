@@ -19,6 +19,7 @@ router.get('/', (req, res) => {
     const participations = db.prepare(query).all(...params);
     res.json(participations);
   } catch (error) {
+    console.error('GET /participations error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -32,6 +33,7 @@ router.get('/:id', (req, res) => {
     }
     res.json(participation);
   } catch (error) {
+    console.error('GET /participations/:id error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -50,24 +52,30 @@ router.post('/', (req, res) => {
       notes
     } = req.body;
 
+    // Validate required field
+    if (!name) {
+      return res.status(400).json({ error: 'Naam is verplicht' });
+    }
+
     const result = db.prepare(`
       INSERT INTO participations
       (name, sector, acquisition_date, acquisition_value, current_value, ownership_percentage, status, notes)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       name,
-      sector,
-      acquisition_date,
-      acquisition_value,
-      current_value || acquisition_value,
-      ownership_percentage,
+      sector || null,
+      acquisition_date || null,
+      acquisition_value || null,
+      current_value || acquisition_value || null,
+      ownership_percentage || null,
       status || 'active',
-      notes
+      notes || null
     );
 
     const participation = db.prepare('SELECT * FROM participations WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json(participation);
   } catch (error) {
+    console.error('POST /participations error:', error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -99,19 +107,20 @@ router.put('/:id', (req, res) => {
       WHERE id = ?
     `).run(
       name,
-      sector,
-      acquisition_date,
-      acquisition_value,
-      current_value,
-      ownership_percentage,
-      status,
-      notes,
+      sector || null,
+      acquisition_date || null,
+      acquisition_value || null,
+      current_value || null,
+      ownership_percentage || null,
+      status || 'active',
+      notes || null,
       req.params.id
     );
 
     const participation = db.prepare('SELECT * FROM participations WHERE id = ?').get(req.params.id);
     res.json(participation);
   } catch (error) {
+    console.error('PUT /participations/:id error:', error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -125,6 +134,7 @@ router.delete('/:id', (req, res) => {
     }
     res.status(204).send();
   } catch (error) {
+    console.error('DELETE /participations/:id error:', error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -142,6 +152,7 @@ router.get('/stats/summary', (req, res) => {
     `).get();
     res.json(stats);
   } catch (error) {
+    console.error('GET /participations/stats/summary error:', error);
     res.status(500).json({ error: error.message });
   }
 });
