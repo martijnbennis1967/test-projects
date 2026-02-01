@@ -72,8 +72,18 @@ router.post('/', (req, res) => {
       notes || null
     );
 
-    const participation = db.prepare('SELECT * FROM participations WHERE id = ?').get(result.lastInsertRowid);
-    res.status(201).json(participation);
+    // Return the created object directly
+    res.status(201).json({
+      id: result.lastInsertRowid,
+      name,
+      sector: sector || null,
+      acquisition_date: acquisition_date || null,
+      acquisition_value: acquisition_value || null,
+      current_value: current_value || acquisition_value || null,
+      ownership_percentage: ownership_percentage || null,
+      status: status || 'active',
+      notes: notes || null
+    });
   } catch (error) {
     console.error('POST /participations error:', error);
     res.status(400).json({ error: error.message });
@@ -117,8 +127,18 @@ router.put('/:id', (req, res) => {
       req.params.id
     );
 
-    const participation = db.prepare('SELECT * FROM participations WHERE id = ?').get(req.params.id);
-    res.json(participation);
+    // Return the updated object directly
+    res.json({
+      id: parseInt(req.params.id),
+      name,
+      sector: sector || null,
+      acquisition_date: acquisition_date || null,
+      acquisition_value: acquisition_value || null,
+      current_value: current_value || null,
+      ownership_percentage: ownership_percentage || null,
+      status: status || 'active',
+      notes: notes || null
+    });
   } catch (error) {
     console.error('PUT /participations/:id error:', error);
     res.status(400).json({ error: error.message });
@@ -136,24 +156,6 @@ router.delete('/:id', (req, res) => {
   } catch (error) {
     console.error('DELETE /participations/:id error:', error);
     res.status(400).json({ error: error.message });
-  }
-});
-
-// Get summary statistics
-router.get('/stats/summary', (req, res) => {
-  try {
-    const stats = db.prepare(`
-      SELECT
-        COUNT(*) as total_count,
-        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_count,
-        SUM(CASE WHEN status = 'active' THEN acquisition_value ELSE 0 END) as total_acquisition_value,
-        SUM(CASE WHEN status = 'active' THEN current_value ELSE 0 END) as total_current_value
-      FROM participations
-    `).get();
-    res.json(stats);
-  } catch (error) {
-    console.error('GET /participations/stats/summary error:', error);
-    res.status(500).json({ error: error.message });
   }
 });
 
