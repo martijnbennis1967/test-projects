@@ -5,13 +5,13 @@ import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const dbPath = join(__dirname, '../data/vca.db');
 
-// Ensure data directory exists
-const dataDir = join(__dirname, '../data');
+// Use DATABASE_PATH env variable for Railway volume, or default to local data folder
+const dataDir = process.env.DATABASE_PATH || join(__dirname, '../data');
 if (!existsSync(dataDir)) {
   mkdirSync(dataDir, { recursive: true });
 }
+const dbPath = join(dataDir, 'vca.db');
 
 // Initialize SQL.js
 const SQL = await initSqlJs();

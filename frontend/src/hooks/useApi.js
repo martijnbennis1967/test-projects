@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 
-const API_BASE = 'http://localhost:3001/api';
+// In production, use relative URL (same origin). In development, use localhost:3001
+const API_BASE = import.meta.env.PROD ? '/api' : 'http://localhost:3001/api';
 
 export function useApi() {
   const [loading, setLoading] = useState(false);
